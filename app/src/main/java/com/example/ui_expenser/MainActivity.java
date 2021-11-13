@@ -8,6 +8,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -39,24 +41,30 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    RecyclerView rcv;
+    ArrayList<MessageModelClass> Message;
+    RecyclerView.Adapter Messageadapter;
+    RecyclerView.LayoutManager mgr;
+
     Toolbar toolbar;
     DrawerLayout drawerLayout;
     NavigationView navigationView;
 
     String msgData = "";
-    ListView lv;
     Spinner month;
 
-    ArrayAdapter<String> adapter;
+
     ArrayList<String> lst1 = new ArrayList<>();
     static String amts = "";
     String avail = "";
     static String amtsfordisplay = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        rcv = findViewById(R.id.rcv);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -65,11 +73,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
 
-
         navigationView = findViewById(R.id.navi_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        lv = findViewById(R.id.msz);
         month = findViewById(R.id.month);
         setmonthspinner();
 
@@ -79,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             String SelectedDate[] = month.getSelectedItem().toString().split(" ", 2);
             msgData = getAllSms(this, SelectedDate[0], SelectedDate[1]);
         }
+
     }
 
     private void setmonthspinner() {
@@ -112,24 +119,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
+        changenotificationcolor();
 
+
+    }
+
+    private void changenotificationcolor() {
         Window window = this.getWindow();
 
-// clear FLAG_TRANSLUCENT_STATUS flag:
+        // clear FLAG_TRANSLUCENT_STATUS flag:
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
-// add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
+       // add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-// finally change the color
-        window.setStatusBarColor(ContextCompat.getColor(this,R.color.notification));
-
+       // finally change the color
+        window.setStatusBarColor(ContextCompat.getColor(this, R.color.notification));
 
 
     }
 
     public String getAllSms(Context context, String month, String year) {
-        ArrayList<String> lst = new ArrayList<>();
+        Message = new ArrayList<>();
+        setAdapter();
         ContentResolver cr = context.getContentResolver();
         Cursor c = cr.query(Telephony.Sms.CONTENT_URI, null, null, null, null);
         int totalSMS = 0;
@@ -169,16 +181,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 if (m.find()) {
                                     Toast.makeText(context, "" + m.group(), Toast.LENGTH_SHORT).show();
                                     if (splitedate[1].trim().equals(month) && splitedate[2].trim().equals(year)) {
+                                        String accno=getaccountno(bodylowercase);
                                         if (bodylowercase.contains("debited") || bodylowercase.contains("paid")) {
                                             amts = getamts(bodylowercase, "debited");
+                                            type="debit";
                                             avail = getavail(bodylowercase);
                                         }
                                         //abhi credited ka
                                         else if (bodylowercase.contains("credited") || bodylowercase.contains("received")) {
                                             amts = getamts(bodylowercase, "credited");
+                                            type="credit";
                                             avail = getavail(bodylowercase);
                                         }
-                                        lst.add(dateString + " " + number + " " + body + " " + amts + " " + avail);
+                                        MessageModelClass messageModelClass = new MessageModelClass(body, dateString, avail, type, amts,"Account nnumber-"+accno);
+                                        Message.add(messageModelClass);
+                                        Messageadapter.notifyDataSetChanged();
+
                                         s = s + dateString + number + body;
                                     }
 
@@ -210,10 +228,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             Toast.makeText(this, "No message to show!", Toast.LENGTH_SHORT).show();
         }
-        adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, lst);
-        lv.setAdapter(adapter);
 
         return s;
+    }
+
+    private String getaccountno(String body) {
+        String accNo="xx";
+        //starting me 2 x hona must
+        if(body.contains("xx")) {
+            String amt[] = body.split("xx", 2);
+            for (int i = 0; i < amt[1].length(); i++) {
+                //index from 3rd element
+                if (amt[1].charAt(i) == ' ') {
+                    break;
+                } else if (amt[1].charAt(i) >= 48 && amt[1].charAt(i) <= 57 || amt[1].charAt(i) == 120) {
+                    accNo = accNo + amt[1].charAt(i);
+                }
+            }
+        }
+        return accNo;
+    }
+
+    private void setAdapter() {
+        mgr = new LinearLayoutManager(MainActivity.this);
+        rcv.setLayoutManager(mgr);
+        Messageadapter = new CustomAdapter(this, Message);
+        rcv.setAdapter(Messageadapter);
     }
 
     private String getavail(String body) {
@@ -278,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             }
         }
-        amts = "\n" + creordeb + " amount" + amts;
+        //amts = "\n" + creordeb + " amount" + amts;
         return amts;
     }
 
@@ -306,12 +346,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onBackPressed() {
-        if(drawerLayout.isDrawerOpen(GravityCompat.START))
-        {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
-        }
-        else
-        {
+        } else {
             finishAffinity();
         }
     }
