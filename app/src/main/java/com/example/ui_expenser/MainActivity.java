@@ -320,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
             //ye akhri wala dot htane k liye
-            availAmt = availAmt.substring(0, availAmt.length() - 2);
+            //availAmt = availAmt.substring(0, availAmt.length() - 2);
             availAmt = "\navailable amount" + availAmt;
             return availAmt;
         }//ye available amount print krne k liye

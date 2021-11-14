@@ -59,13 +59,11 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyHolder> 
         }
         if(msz.get(i).getTransaction_tye().trim().equals("upi"))
             myHolder.iv.setImageResource(R.drawable.upi_icon);
-        else if(msz.get(i).getTransaction_tye().trim().equals("debit card")){
+        else if(msz.get(i).getTransaction_tye().trim().equals("atm")){
             myHolder.iv.setImageResource(R.drawable.ic_baseline_atm_24);
-        }
-        else if(msz.get(i).getTransaction_tye().trim().equals("imps")){
+        }else if(msz.get(i).getTransaction_tye().trim().equals("imps")){
             myHolder.iv.setImageResource(R.drawable.imps_icon);
         }
-
     }
 
     @Override
@@ -84,7 +82,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyHolder> 
 
         public MyHolder(@NonNull View v) {
             super(v);
-            iv = v.findViewById(R.id.image);
+            iv = v.findViewById(R.id.icon);
             body = v.findViewById(R.id.msz);
             date= v.findViewById(R.id.date);
             avail=v.findViewById(R.id.avail);
