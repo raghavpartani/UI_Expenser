@@ -15,6 +15,7 @@
         android:orientation="vertical"
         android:layout_marginTop="50dp">
 
+
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -23,6 +24,14 @@
             app:title="Expenser"
             android:background="@color/colorPrimary">
         </androidx.appcompat.widget.Toolbar>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/total_deb"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/total_cred"/>
         <Spinner
             android:id="@+id/month"
             android:layout_width="match_parent"
@@ -34,8 +43,6 @@
             android:layout_height="match_parent"
         />
     </LinearLayout>
-
-
 
 
 

@@ -7,6 +7,15 @@ public class MessageModelClass {
     String type="";
     String deborcredamt="";
     String acc="";
+    String transaction_tye="";
+
+    public String getTransaction_tye() {
+        return transaction_tye;
+    }
+
+    public void setTransaction_tye(String transaction_tye) {
+        this.transaction_tye = transaction_tye;
+    }
 
     public String getAcc() {
         return acc;
@@ -59,13 +68,14 @@ public class MessageModelClass {
     public MessageModelClass() {
     }
 
-    public MessageModelClass(String body, String date, String avail, String type, String deborcredamt,String acc) {
+    public MessageModelClass(String body, String date, String avail, String type, String deborcredamt,String acc,String transaction_tye) {
         this.body = body;
         this.date = date;
         this.avail = avail;
         this.type = type;
         this.deborcredamt = deborcredamt;
         this.acc=acc;
+        this.transaction_tye=transaction_tye;
     }
 
 }

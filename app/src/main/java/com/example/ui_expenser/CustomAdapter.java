@@ -39,6 +39,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyHolder> 
     @Override
     public void onBindViewHolder(@NonNull MyHolder myHolder, int i) {
         String amtdeborcred=msz.get(i).getDeborcredamt();
+        if(msz.get(i).getDeborcredamt().length()>0)
         if(msz.get(i).getDeborcredamt().charAt(0)=='.'){
                 String am[]=amtdeborcred.split(".",2);
                 amtdeborcred=am[1];
@@ -55,6 +56,14 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyHolder> 
         else{
             myHolder.deborcredamt.setText("₹ "+amtdeborcred);
             myHolder.deborcredamt.setTextColor(Color.GREEN);
+        }
+        if(msz.get(i).getTransaction_tye().trim().equals("upi"))
+            myHolder.iv.setImageResource(R.drawable.upi_icon);
+        else if(msz.get(i).getTransaction_tye().trim().equals("debit card")){
+            myHolder.iv.setImageResource(R.drawable.ic_baseline_atm_24);
+        }
+        else if(msz.get(i).getTransaction_tye().trim().equals("imps")){
+            myHolder.iv.setImageResource(R.drawable.imps_icon);
         }
 
     }

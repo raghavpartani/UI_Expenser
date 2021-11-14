@@ -28,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     static String amts = "";
     String avail = "";
     static String amtsfordisplay = "";
+    TextView totaldebtv, totalcredtv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +69,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         rcv = findViewById(R.id.rcv);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+
+        totalcredtv = findViewById(R.id.total_cred);
+        totaldebtv = findViewById(R.id.total_deb);
 
         drawerLayout = findViewById(R.id.drawer_layout);
         final ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open_navigationbar, R.string.close_navigationbar);
@@ -130,10 +136,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // clear FLAG_TRANSLUCENT_STATUS flag:
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
-       // add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
+        // add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-       // finally change the color
+        // finally change the color
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.notification));
 
 
@@ -148,6 +154,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int count = 0;
         String s = "";
         String ban = "";
+        double totalcred = 0;
+        double totaldeb = 0;
         Pattern regEx = Pattern.compile("(?=.*[Aa]ccount.*|.*[Aa]/[Cc].*|.*[Aa][Cc][Cc][Tt].*|.*[Cc][Aa][Rr][Dd].*)(?=.*[Cc]redit.*|.*[Dd]ebit.*)(?=.*[Ii][Nn][Rr].*|.*[Rr][Ss].*)");
 
 
@@ -177,26 +185,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 amts = "";
                                 amtsfordisplay = "";
 
-
                                 if (m.find()) {
                                     Toast.makeText(context, "" + m.group(), Toast.LENGTH_SHORT).show();
                                     if (splitedate[1].trim().equals(month) && splitedate[2].trim().equals(year)) {
-                                        String accno=getaccountno(bodylowercase);
-                                        if (bodylowercase.contains("debited") || bodylowercase.contains("paid")) {
+                                        String accno = getaccountno(bodylowercase);
+                                        if (bodylowercase.contains("debited") || bodylowercase.contains("paid") || bodylowercase.contains("spent")) {
                                             amts = getamts(bodylowercase, "debited");
-                                            type="debit";
+                                            type = "debit";
                                             avail = getavail(bodylowercase);
+                                            if (amts.length() > 0) {
+                                                if (amts.charAt(0) == '.') {
+                                                    String am[] = amts.split(".", 2);
+                                                    amts = am[1];
+                                                }
+                                            }
+                                            totaldeb = totaldeb + Double.parseDouble(amts);
                                         }
                                         //abhi credited ka
                                         else if (bodylowercase.contains("credited") || bodylowercase.contains("received")) {
                                             amts = getamts(bodylowercase, "credited");
-                                            type="credit";
+                                            type = "credit";
                                             avail = getavail(bodylowercase);
+                                            if (amts.length() > 0) {
+                                                if (amts.charAt(0) == '.') {
+                                                    String am[] = amts.split(".", 2);
+                                                    amts = am[1];
+                                                }
+                                            }
+                                            totalcred = totalcred + Double.parseDouble(amts);
                                         }
-                                        MessageModelClass messageModelClass = new MessageModelClass(body, dateString, avail, type, amts,"Account nnumber-"+accno);
+                                        String trans_type = "bank";
+                                        if (bodylowercase.contains("upi")) {
+                                            trans_type = "upi";
+                                        } else if(bodylowercase.contains("imps")){
+                                            trans_type="imps";
+                                        }else if(bodylowercase.contains("debit card")){
+                                            trans_type="atm";
+                                        }
+                                        MessageModelClass messageModelClass = new MessageModelClass(body, dateString, avail, type, amts, "Account nnumber-" + accno,trans_type);
                                         Message.add(messageModelClass);
                                         Messageadapter.notifyDataSetChanged();
-
                                         s = s + dateString + number + body;
                                     }
 
@@ -229,13 +257,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(this, "No message to show!", Toast.LENGTH_SHORT).show();
         }
 
+
+        totalcredtv.setText(totalcred + "Total cred");
+        totaldebtv.setText(totaldeb + "total deb");
         return s;
     }
 
     private String getaccountno(String body) {
-        String accNo="xx";
+        String accNo = "xx";
         //starting me 2 x hona must
-        if(body.contains("xx")) {
+        if (body.contains("xx")) {
             String amt[] = body.split("xx", 2);
             for (int i = 0; i < amt[1].length(); i++) {
                 //index from 3rd element
